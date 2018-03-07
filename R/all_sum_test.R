@@ -46,10 +46,6 @@ all_sum_test <- function(x, y, data, alternative, graph, digits = 3, ...){
                       upper_quartile = quantile(y, 0.75, na.rm=T))
     return(out)
   }
-  y_graph <- y
-
-  x <- unname(factor(unlist(data[x])))
-  y <- unname(as.numeric(unlist(data[y])))
 
   smry <- tapply(y, x, data_sum)
   smry <- do.call(rbind, smry)
@@ -120,6 +116,23 @@ all_sum_test <- function(x, y, data, alternative, graph, digits = 3, ...){
   limits <- aes(ymax = data1$x_mean + data1$x_se,
                 ymin = data1$x_mean - data1$x_se)
 
+  ##preparing for the y lab
+
+  y_length <- length(y)
+
+  data_names <- colnames(data)
+
+  name_length <- length(data_names)
+
+  result <- numeric(name_length)
+
+  for (i in 1:name_length) {
+    result[i] <- sum(y %in% factor(unlist(data[data_names[i]])))
+  }
+
+  y_graph <- data_names[which(result == y_length)]
+
+  ##plotting
   graph1 <-
     ggplot(data1, aes(x_cat, x_mean, fill = x_cat)) +
     geom_bar(stat="identity") +
@@ -141,13 +154,17 @@ all_sum_test <- function(x, y, data, alternative, graph, digits = 3, ...){
     if (alternative == "overall"){
       if (!missing(graph)){
         if (graph == T){
-          return(list(out, graph1, graph2))
+          lst <- list(out, graph1, graph2)
+          names(lst) <- c("Numerical Analysis", "Barplot", "Boxplot")
+          return(lst)
         }
         else {
           return(out)
         }
       }else {
-        return(list(out, graph1, graph2))
+        lst <- list(out, graph1, graph2)
+        names(lst) <- c("Numerical Analysis", "Barplot", "Boxplot")
+        return(lst)
       }
     }
     else if (alternative == "parametric"){
@@ -156,23 +173,30 @@ all_sum_test <- function(x, y, data, alternative, graph, digits = 3, ...){
           return(out[,c(1:3, 5)])
         }
         else {
-          return(list(out[,c(1:3, 5)], graph1))
+          lst <- list(out[,c(1:3, 5)], graph1)
+          names(lst) <- c("Numerical Analysis", "Barplot")
+          return(lst)
         }
       } else {
-        return(list(out[,c(1:3, 5)], graph1))
+        lst <- list(out[,c(1:3, 5)], graph1)
+        names(lst) <- c("Numerical Analysis", "Barplot")
+        return(lst)
       }
     }
     else if (alternative == "nonparametric") {
       if (!missing(graph)){
         if (graph == F) {
           return(out[,c(1:2, 4, 6)])
-
         }
         else{
-          return(list(out[,c(1:2, 4, 6)], graph2))
+          lst <- list(out[,c(1:2, 4, 6)], graph2)
+          names(lst) <- c("Numerical Analysis", "Boxplot")
+          return(lst)
         }
       } else {
-        return(list(out[,c(1:2, 4, 6)], graph2))
+        lst <- list(out[,c(1:2, 4, 6)], graph2)
+        names(lst) <- c("Numerical Analysis", "Boxplot")
+        return(lst)
       }
     }
   }
@@ -182,11 +206,14 @@ all_sum_test <- function(x, y, data, alternative, graph, digits = 3, ...){
         return(out)
       }
       else {
-        return(list(out, graph1, graph2))
+        lst <- list(out, graph1, graph2)
+        names(lst) <- c("Numerical Analysis", "Barplot", "Boxplot")
+        return(lst)
       }
     }else {
-      return(list(out, graph1, graph2))
+      lst <- list(out, graph1, graph2)
+      names(lst) <- c("Numerical Analysis", "Barplot", "Boxplot")
+      return(lst)
     }
   }
 }
-
