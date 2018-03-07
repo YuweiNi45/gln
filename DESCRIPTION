@@ -5,9 +5,6 @@ Version: 0.1.0
 Author: c(person("Meng","Lan",email="menglan36@gmail.com",role = c("aut")),
           person("Xinye","Gui",email = "leafly80@163.com",role = c("aut")),
           person("Yuwei","Ni",email= "yuweiniCornell@gmail.com",role = c("aut")))
-Maintainer: c(person("Meng","Lan",email="menglan36@gmail.com",role = c("aut")),
-          person("Xinye","Gui",email = "leafly80@163.com",role = c("aut")),
-          person("Yuwei","Ni",email= "yuweiniCornell@gmail.com",role = c("aut")))
 Description: The 'gln' is a package that is designed to efficiently summarize the data numerically and graphically for parametric and non-parametric tests.
 Imports: multcomp, tidyverse,ggplot2
 Suggests: formatR, knitr, rmarkdown,testthat
@@ -16,5 +13,4 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
 VignetteBuilder: knitr
-URL:https://github.com/YuweiNi45/gln.git
-BugReports:https://github.com/YuweiNi45/gln.git/issues
+
