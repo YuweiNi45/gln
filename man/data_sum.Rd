@@ -13,7 +13,7 @@ data_sum(y)
 The method returns \code{y} containing the length, mean, median, 25% and 75% quartiles of the object. Missing values are removed by default.
 }
 \description{
-Generic function to provide basic summary statistics for numeric vectors
+Generic function to provide basic summary statistics analysis for numeric vectors
 }
 \examples{
 x<-c(0:10,50)
