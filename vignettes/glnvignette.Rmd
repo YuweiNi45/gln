@@ -1,0 +1,437 @@
+---
+title: "Numerical and Graphical Summary for Comparing Continuous Data in Multiple Groups"
+author: "Meng Lan, Yuwei Ni and Xinye Gui"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Abstract
+
+This document gives a gallery of well-formatted summary tables and graphs which can be made using the gln package for comparing continuous data in multiple groups. To examine whether there is difference across the groups, overall tables and graphs are provided for comparison using parametric and/or nonparametric approach. To detect between which groups the difference is, the package produces different tables for post hoc analysis depending on one factor or two factors in the data. This package is designed to make it easy to install and load multiple functions in a single step.
+
+## Introduction
+
+gln is an R package that creates code for well-formatted tables and graphs for multiple comparison using ANOVA and non-parametric method. The first step is to load the package. 
+
+```{r,echo=TRUE}
+#library(gln)
+```
+
+## Examples
+
+### Overall Summary
+```{r,echo=FALSE}
+library(multcomp)#after library gln, no need.
+library(tidyverse)#after library gln, no need.
+dat <- data.frame(read.csv("/Users/summer/Downloads/Mousedata.csv"))#external data?
+dat$Group <- as.factor(dat$Group)
+#dat
+all_sum_test <- function(x, y, data, alternative, graph, digits = 3, ...){
+
+  data_sum <- function(y){
+    out <- data.frame(n = length(y),
+                      n.complete = length(y[!is.na(y)]),
+                      mean = mean(y, na.rm=T),
+                      sd = sd(y, na.rm=T),
+                      median = median(y, na.rm=T),
+                      lower_quartile = quantile(y, 0.25, na.rm=T),
+                      upper_quartile = quantile(y, 0.75, na.rm=T))
+    return(out)
+  }
+  y_graph <- y
+
+  x <- unname(factor(unlist(data[x])))
+  y <- unname(as.numeric(unlist(data[y])))
+
+  smry <- tapply(y, x, data_sum)
+  smry <- do.call(rbind, smry)
+
+  lm <- lm (y ~ x, data = data, ...)
+
+  anova <- anova(lm (y ~ 1, data = data, ...),lm)
+
+  kruskal <- kruskal.test(y~x)
+
+  test<-function(x){
+    if(x < 0.001) x.txt<- "<0.001"
+    else if(x<0.05) x.txt<-"<0.05"
+    else x.txt<- format(x,digits = 2)
+    x.txt
+  }
+
+  numrow <- nrow(smry)-1
+
+  p_anova <- test(anova$`Pr(>F)`[2])
+
+  p_kw <- test(kruskal$p.value)
+
+  out <- data.frame(smry[,1:2],
+                    mean.sd = paste0(format(smry$mean, digits=digits),
+                                     " +/- ",
+                                     format(smry$sd, digits=digits)),
+                    median.IQR = paste0(format(smry$median, digits=digits),
+                                        " (",
+                                        format(smry$lower_quartile, digits=digits), ",", format(smry$upper_quartile, digits = digits), ")"),
+                    p.anova=paste0(c(rep("", numrow), p_anova)),
+                    p.kw=paste0(c(rep("", numrow), p_kw))
+  )
+  names(out)[3] <- "mean +/- sd"
+  names(out)[4] <- "median(IQR)"
+
+  graph_test <- function(x){
+    if(x < 0.001) x.txt<- "<0.001"
+    else if(x<0.05) x.txt<-"<0.05"
+    else x.txt<- paste("=", format(x,digits = 2))
+    x.txt
+  }
+
+  p_anova_graph <- graph_test(anova$`Pr(>F)`[2])
+
+  p_kw_graph <- graph_test(kruskal$p.value)
+
+  ##making the plot
+  x_cat <- levels(x)
+
+  x_num <- length(x_cat)
+
+  x_mean <- numeric(x_num)
+
+  x_se <- numeric(x_num)
+
+  for (i in 1:x_num) {
+    x_mean[i] <- mean(y[which(x == x_cat[i])])
+  }
+
+  for (i in 1:x_num) {
+    x_se[i] <- sd(y[which(x == x_cat[i])])/sqrt(length(y[which(x == x_cat[i])]))
+  }
+
+  data1 <- data.frame(x_mean, x_cat, x_se)
+
+  dodge <- position_dodge(width = 0.9)
+  limits <- aes(ymax = data1$x_mean + data1$x_se,
+                ymin = data1$x_mean - data1$x_se)
+
+  graph1 <-
+    ggplot(data1, aes(x_cat, x_mean, fill = x_cat)) +
+    geom_bar(stat="identity") +
+    geom_errorbar(limits, position = dodge, width = 0.25) +
+    annotate("text", label = paste("P", p_anova_graph, sep = ""), x = 1, y = ceiling(min(x_mean + x_se) + max(x_mean + x_se)), size = 3) +
+    theme(panel.background = element_rect(fill = "white", colour = "black"), axis.title.x=element_blank()) +
+    labs(y = y_graph, fontface="bold") +
+    theme(legend.position="none")
+
+  graph2 <-
+    ggplot(data, aes(x, y, fill = x)) +
+    geom_boxplot() +
+    annotate("text", label = paste("P", p_kw_graph, sep = ""), x = 1, y = ceiling(min(x_mean + x_se) + max(x_mean + x_se)), size = 3) +
+    theme(panel.background = element_rect(fill = "white", colour = "black"), axis.title.x=element_blank()) +
+    labs(y = y_graph, fontface="bold") +
+    theme(legend.position="none")
+
+  if (!missing(alternative)) {
+    if (alternative == "overall"){
+      if (!missing(graph)){
+        if (graph == T){
+          return(list(out, graph1, graph2))
+        }
+        else {
+          return(out)
+        }
+      }else {
+        return(list(out, graph1, graph2))
+      }
+    }
+    else if (alternative == "parametric"){
+      if (!missing(graph)){
+        if (graph == F){
+          return(out[,c(1:3, 5)])
+        }
+        else {
+          return(list(out[,c(1:3, 5)], graph1))
+        }
+      } else {
+        return(list(out[,c(1:3, 5)], graph1))
+      }
+    }
+    else if (alternative == "nonparametric") {
+      if (!missing(graph)){
+        if (graph == F) {
+          return(out[,c(1:2, 4, 6)])
+
+        }
+        else{
+          return(list(out[,c(1:2, 4, 6)], graph2))
+        }
+      } else {
+        return(list(out[,c(1:2, 4, 6)], graph2))
+      }
+    }
+  }
+  else {
+    if (!missing(graph)){
+      if (graph == F){
+        return(out)
+      }
+      else {
+        return(list(out, graph1, graph2))
+      }
+    }else {
+      return(list(out, graph1, graph2))
+    }
+  }
+}
+```
+
+
+For overall multiple comparison, by default (or specifying "overall") it returns a table containing both the summary results in parametric and non-parametric approach, a bar plot showing mean, standard error for each level and F-test results, and a boxplot showing median, IQR for each level and Kruskal-Wallis test results.
+
+```{r,echo=TRUE}
+all_sum_test ("Group", "Cr", data=dat)
+```
+
+Specifying parametric approach, it returns a table containing sample size, number of observations without missing value, mean, standard deviation for each level and F-test results, and a bar plot showing mean, standard error for each level and F-test results.
+
+```{r}
+all_sum_test ("Group", "Cr", data=dat,alternative = "parametric")
+```
+
+Specifying nonparametric approach, it returns a table containing sample size, number of observations without missing value, mean, standard deviation for each level and F-test results, and a bar plot showing mean, standard error for each level and F-test results.
+
+```{r}
+all_sum_test ("Group", "Cr", data=dat,alternative = "nonparametric")
+```
+
+Specifying graph is False, the graphs will not be displayed.
+
+```{r}
+all_sum_test ("Group", "Cr", data=dat, graph = F)
+```
+
+### Post Hoc Analysis
+```{r, echo=FALSE}
+posthoc_test <- function(x, y, dat, method, K, digits=3, ...){
+
+  x <- as.factor(x)
+
+  test<-function(x){
+    if(x < 0.001) x.txt<- "<0.001"
+    else if(x<0.05) x.txt<-"<0.05"
+    else x.txt<- format(x,digits = 2)
+    x.txt
+  }
+
+  if(!missing(K)){
+
+    out <- lm(y ~ x, data = dat, ...)
+
+    ##parametric
+
+    dunnett <- summary(glht(out, linfct = mcp(x = "Dunnett")))
+
+    tukey <- summary(glht(out, linfct = mcp(x = "Tukey")))
+
+    general <- summary(glht(out, linfct=mcp(x=K)))
+
+    holm <- summary(glht(out, linfct=mcp(x=K)), test=adjusted(type="holm"))
+
+    non_adjusted <- summary(glht(out, linfct=mcp(x=K)), test=adjusted(type="none"))
+
+    ##dunnett
+
+    dunnett_p <- dunnett$test$pvalues
+    dunnett_p1 <- unname(dunnett_p, force = FALSE)
+
+    np1 <- length(dunnett_p1)
+
+    p.dunnett<-numeric(np1)
+
+    for (i in 1:np1) {
+      p.dunnett[i] <- test(dunnett_p1[i])
+    }
+
+    ##tukey
+
+    tukey_p <- tukey$test$pvalues
+    tukey_p1 <- unname(tukey_p, force = FALSE)
+
+    np2 <- length(tukey_p1)
+
+    p.tukey<-numeric(np2)
+
+    for (i in 1:np2) {
+      p.tukey[i] <- test(tukey_p1[i])
+    }
+
+    ##general
+
+    general_p <- general$test$pvalues
+    general_p1 <- unname(general_p, force = FALSE)
+
+    np3 <- length(general_p1)
+
+    p.general<-numeric(np3)
+
+    for (i in 1:np3) {
+      p.general[i] <- test(general_p1[i])
+    }
+
+    ##holm
+    holm_p <- holm$test$pvalues
+    holm_p1 <- unname(holm_p, force = FALSE)
+
+    np4 <- length(holm_p1)
+
+    p.holm<-numeric(np4)
+
+    for (i in 1:np4) {
+      p.holm[i] <- test(holm_p1[i])
+    }
+
+    #non adjusted
+    non_adjusted_p <- non_adjusted$test$pvalues
+    non_adjusted_p1 <- unname(non_adjusted_p, force = FALSE)
+
+    np5 <- length(non_adjusted_p1)
+
+    p.nonad<-numeric(np5)
+
+    for (i in 1:np5) {
+      p.nonad[i] <- test(non_adjusted_p1[i])
+    }
+
+    if(!missing(method)){
+      if (method == "dunnett"){
+        out <- data.frame(pm.p.dunnett=p.dunnett,
+                          pm.p=p.nonad
+        )
+      } else if (method == "tukey"){
+        out <- data.frame(pm.p.tukey=p.tukey,
+                          pm.p=p.nonad
+        )
+      } else if (method == "general"){
+        out <- data.frame(pm.p.general=p.general,
+                          pm.p=p.nonad
+        )
+      } else if (method == "holm"){
+        out <- data.frame(pm.p.holm=p.holm,
+                          pm.p=p.nonad
+        )
+      }
+    } else {
+      out <- data.frame(pm.p.tukey=p.tukey,
+                        pm.p=p.nonad
+      )
+    }
+
+    rownames(out) <- rownames(K)
+  }
+  else {
+    #don't have k matrix
+
+    out <- lm(y ~ x, data = dat, ...)
+
+    dunnett <- summary(glht(out, linfct = mcp(x = "Dunnett")))
+
+    tukey <- summary(glht(out, linfct = mcp(x = "Tukey")))
+
+    ##dunnett
+
+    dunnett_p <- dunnett$test$pvalues
+    dunnett_p1 <- unname(dunnett_p, force = FALSE)
+
+    np1 <- length(dunnett_p1)
+
+    p.dunnett<-numeric(np1)
+
+    for (i in 1:np1) {
+      p.dunnett[i] <- test(dunnett_p1[i])
+    }
+
+    ##tukey
+
+    tukey_p <- tukey$test$pvalues
+    tukey_p1 <- unname(tukey_p, force = FALSE)
+
+    np2 <- length(tukey_p1)
+
+    p.tukey<-numeric(np2)
+
+    for (i in 1:np2) {
+      p.tukey[i] <- test(tukey_p1[i])
+    }
+
+    if(!missing(method)){
+      if (method == "dunnett"){
+        out <- data.frame(pm.p.dunnett=p.dunnett
+        )
+        rownames(out) <- rownames(dunnett$linfct)
+      } else if (method == "tukey"){
+        out <- data.frame(pm.p.tukey=p.tukey
+        )
+        rownames(out) <- rownames(tukey$linfct)
+      }
+    }else {
+      out <- data.frame(pm.p.tukey=p.tukey
+      )
+      rownames(out) <- rownames(tukey$linfct)
+    }
+  }
+  return(out)
+}
+```
+
+By default, it returns a table containing pair-wised comparison whose p-values are adjusted by Tukey's method.
+
+```{r}
+posthoc_test (dat$Group, dat$Cr, dat)
+```
+
+When method is Dunnett, it returns a table containing comparison with control group whose p-values are adjusted by Dunnett's method.
+
+```{r}
+posthoc_test (dat$Group, dat$Cr, dat, method = "dunnett")
+```
+
+When users define contrasts themselves for multiple comparisons of means and the method is general, it returns a table containing p-values adjusted for family-wise error by using single-step method and not adjusted ones.
+
+```{r}
+K <- rbind("HF.OVX.Celecoxib - HF.OVX" = c(-1,1,0,0),
+           "LF.Celecoxib - LF" = c(0,0,-1,1),
+           "HF.OVX - LF" = c(1,0,-1,0),
+           "HF.OVX.Celecoxib - LF.Celecoxib" = c(0,1,0,-1),
+           "HF.OVX.Celecoxib + LF.Celecoxib - LF - HF.OVX" = c(-1,1,-1,1),
+           "HF.OVX.Celecoxib + HF.OVX - LF.Celecoxib - LF" = c(1,1,-1,-1),
+           "HF.OVX.Celecoxib - HF.OVX - LF.Celecoxib + LF"= c(1,-1,-1,1))
+posthoc_test (dat$Group, dat$Cr, dat, method = "general", K = K)
+```
+
+When users define contrasts themselves for multiple comparisons of means and the method is holm, meaning users define contrasts themselves for multiple comparisons of means, it returns a table containing p-values adjusted for family-wise error by using Bonferroni-Holm method and not adjusted ones.
+
+```{r}
+posthoc_test (dat$Group, dat$Cr, dat, method = "holm", K = K)
+```
+
+## Contributions
+
+Xinye Gui: Creating package, function design and modification
+
+Meng Lan: Documenting functions, package description, vignette
+
+Yuwei Ni: Documenting packages and functions, tutorial
+
+
+## References
+
+Hlavac, Marek (2018). stargazer: Well-Formatted Regression and Summary Statistics Tables. R package version 5.2.1. https://CRAN.R-project.org/package=stargazer
