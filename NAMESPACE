@@ -2,7 +2,6 @@
 
 export(all_sum_test)
 export(data_sum)
-export(hello)
 export(posthoc_test)
 import(ggplot2)
 import(multcomp)
