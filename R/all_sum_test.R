@@ -116,7 +116,7 @@ all_sum_test <- function(x, y, data, alternative, graph, digits = 3, ...){
   limits <- aes(ymax = data1$x_mean + data1$x_se,
                 ymin = data1$x_mean - data1$x_se)
 
-  ##preparing for the y lab
+  ##preparing for the y lab name
 
   y_length <- length(y)
 
