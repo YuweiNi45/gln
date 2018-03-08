@@ -25,16 +25,20 @@ This document gives a gallery of well-formatted summary tables and graphs which 
 gln is an R package that creates code for well-formatted tables and graphs for multiple comparison using ANOVA and non-parametric method. The first step is to load the package. 
 
 ```{r,echo=TRUE}
-#library(gln)
+install.packages("devtools")
+devtools::install_github("YuweiNi45/gln")
+library(gln)
+data(Mousedata)
+dat<-Mousedata
+dat
 ```
 
 ## Examples
 
 ### Overall Summary
 ```{r,echo=FALSE}
-library(multcomp)#after library gln, no need.
-library(tidyverse)#after library gln, no need.
-dat <- data.frame(read.csv("/Users/summer/Downloads/Mousedata.csv"))#external data?
+library(multcomp) #after library gln, no need.
+library(tidyverse) #after library gln, no need.
 dat$Group <- as.factor(dat$Group)
 #dat
 all_sum_test <- function(x, y, data, alternative, graph, digits = 3, ...){
