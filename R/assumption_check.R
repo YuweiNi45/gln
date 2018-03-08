@@ -30,6 +30,7 @@
 #'
 #'@import ggplot2
 #'@import multcomp
+#'@import tidyverse
 #'
 #'@export
 #'

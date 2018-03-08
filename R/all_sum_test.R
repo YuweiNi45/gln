@@ -30,6 +30,7 @@
 #'
 #'@import ggplot2
 #'@import multcomp
+#'@import tidyverse
 #'
 #'@export
 
@@ -177,7 +178,7 @@ all_sum_test <-
       theme(legend.position = "none")
 
     graph2 <-
-      ggplot(data, aes(x, y, fill = x)) +
+      ggplot(data, aes(x, y, fill = x, group = x)) +
       geom_boxplot() +
       annotate(
         "text",
