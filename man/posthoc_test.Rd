@@ -28,7 +28,7 @@ posthoc_test(data, y, x, x1, K, method = c("tukey", "dunnett", "general",
 \item{dat}{a data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables to be summarized}
 }
 \value{
-The posthoc_test returns a table containing p-values for selected method, must be one of " tukey " (default), "dunnett", "general", "holm" or "none". Missing values are removed by default
+The posthoc_test returns a table containing p-values for selected method, must be one of " tukey " (default), "dunnett", "general", "holm" or "none", and selected model, must be one of "cellmean" or "maineffect". Missing values are removed by default
 }
 \description{
 To detect between which groups the difference is, the package produces different tables for post hoc analysis depending on one factor or two factors in the data.

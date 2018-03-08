@@ -12,7 +12,7 @@
 #'@param digits	the digits of the data values (default is 3)
 #'@param ...	further arguments to be passed to or from methods
 #'
-#' @return The posthoc_test returns a table containing p-values for selected method, must be one of " tukey " (default), "dunnett", "general", "holm" or "none". Missing values are removed by default
+#' @return The posthoc_test returns a table containing p-values for selected method, must be one of " tukey " (default), "dunnett", "general", "holm" or "none", and selected model, must be one of "cellmean" or "maineffect". Missing values are removed by default
 #' @seealso \code{\link[multcomp]{glht}}
 #' @references Becker, R.A., Chambers, J.M., and Wilks, A.R.(1988) The New S Language. Wadsworth & Brooks/Cole.
 #' @examples
