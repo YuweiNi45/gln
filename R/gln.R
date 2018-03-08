@@ -4,7 +4,7 @@
 #'
 #'
 #'@section Functions:
-#'The gln package provides three categories of important functions:
+#' The gln package provides three categories of important functions:
 #'
 #'
 #' all_sum_test: \code{\link[gln]{all_sum_test}}
