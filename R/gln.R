@@ -1,6 +1,7 @@
 #' gln: Numerical and Graphical Summary for Comparing Continuous Data in Multiple Groups
 #'
-#'The "gln" is a set of functions that analysis whether there is difference in any of the means among different groups in our dataset. This package is designed to make it easy to install and load multiple "ANOVA" functions in a single step. The “gln” packages includes parametric (F-Test) and non-parametric method (KW-Test). The output contains both tables and figures based on the result of ANOVA analysis.
+#'This package gives a gallery of well-formatted summary tables and graphs which can be made using the gln package for comparing continuous data in multiple groups. To check the model assumptionm, tables containing test results and graphs are displayed for normality and heteroscedasticity test.To examine whether there is difference across the groups, overall tables and graphs are provided for comparison using parametric and/or nonparametric approach. To detect between which groups the difference is, the package produces different tables for post hoc analysis depending on one factor or two factors in the data.
+#'
 #'
 #'@section Functions:
 #'The gln package provides three categories of important functions:
