@@ -4,7 +4,8 @@
 \alias{all_sum_test}
 \title{create tables and graphs providing overall multiple comparison}
 \usage{
-all_sum_test(x, y, data, alternative, graph, digits = 3, ...)
+all_sum_test(x, y, data, alternative = c("overall", "parametric",
+  "nonparametric"), graph = c(TRUE, FALSE), digits = 3, ...)
 }
 \arguments{
 \item{x}{a vector that contains different levels whose summary results are wanted for comparison}

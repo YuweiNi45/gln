@@ -32,7 +32,7 @@
 #'@import multcomp
 #'
 #'@export
-
+#'
 assumption_check <-
   function(x,
            y,
