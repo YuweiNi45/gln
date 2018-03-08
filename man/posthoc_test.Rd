@@ -9,6 +9,8 @@ posthoc_test(data, y, x, x1, K, method = c("tukey", "dunnett", "general",
   ...)
 }
 \arguments{
+\item{data}{a data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables to be summarized}
+
 \item{y}{a numeric vector of data value}
 
 \item{x}{a vector that contains different levels whose summary results are wanted for comparison}
@@ -24,8 +26,6 @@ posthoc_test(data, y, x, x1, K, method = c("tukey", "dunnett", "general",
 \item{digits}{the digits of the data values (default is 3)}
 
 \item{...}{further arguments to be passed to or from methods}
-
-\item{dat}{a data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables to be summarized}
 }
 \value{
 The posthoc_test returns a table containing p-values for selected method, must be one of " tukey " (default), "dunnett", "general", "holm" or "none", and selected model, must be one of "cellmean" or "maineffect". Missing values are removed by default

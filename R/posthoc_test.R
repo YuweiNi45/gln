@@ -2,7 +2,7 @@
 #'
 #' To detect between which groups the difference is, the package produces different tables for post hoc analysis depending on one factor or two factors in the data.
 #'
-#'@param dat	a data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables to be summarized
+#'@param data	a data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables to be summarized
 #'@param y	a numeric vector of data value
 #'@param x	a vector that contains different levels whose summary results are wanted for comparison
 #'@param x1        a vector that contains different levels whose summary results are wanted for comparison. Only necessary for two-factor analysis
