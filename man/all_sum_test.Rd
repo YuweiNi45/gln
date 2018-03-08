@@ -7,35 +7,34 @@
 all_sum_test(x, y, data, alternative, graph, digits = 3, ...)
 }
 \arguments{
-\item{x}{a vector that contains different levels whose summary results are wanted for comparison.}
+\item{x}{a vector that contains different levels whose summary results are wanted for comparison}
 
 \item{y}{a numeric vector of data values}
 
-\item{data}{a data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables to be summarized.}
+\item{data}{a data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables to be summarized}
 
-\item{alternative}{a character string specifying the alternative approaches, must be one of "overall" (default), "parametric" or " non-parametric".}
+\item{alternative}{a character string specifying the alternative approaches, must be one of "overall" (default), "parametric" or " non-parametric"}
 
-\item{graph}{logical. If TRUE the corresponding plots (bar plot, box plot) are returned.}
+\item{graph}{logical. If FALSE the corresponding plots (bar plot, box plot) are not returned. Default is TRUE (to return the plots)}
 
 \item{digits}{the digits of the data values (default is 3)}
 
-\item{...}{further arguments to be passed to or from methods.}
+\item{...}{further arguments to be passed to or from methods}
 }
 \value{
-For parametric approach, it returns a table containing sample size, number of observations without missing value, mean, standard deviation for each level and F-test results, and a bar plot showing mean, standard error for each level and F-test results. For non-parametric approach, it returns a table containing sample size, number of observations without missing value, median, IQR for each level and Kruskal-Wallis test results, and a boxplot showing median, IQR for each level and Kruskal-Wallis test results. For overall, it returns a table containing both the summary results in parametric and non-parametric approach, a bar plot showing mean, standard error for each level and F-test results, and a boxplot showing median, IQR for each level and Kruskal-Wallis test results.
+For parametric approach, it returns a table containing sample size, number of observations without missing value, mean, standard deviation for each level and F-test results, and a bar plot showing mean, standard error for each level and F-test results. For non-parametric approach, it returns a table containing sample size, number of observations without missing value, median, IQR for each level and Kruskal-Wallis test results, and a boxplot showing median, IQR for each level and Kruskal-Wallis test results. For overall, it returns a table containing both the summary results in parametric and non-parametric approach, a bar plot showing mean, standard error for each level and F-test results, and a boxplot showing median, IQR for each level and Kruskal-Wallis test results
 }
 \description{
 Generic function to create tables and plots providing basic overall numerical and graphical summary in different groups for comparison, based on parametric and/or non-parametric approach.
 }
 \examples{
-x <- c(1,1,2,2,3,3,4,4)
+x <- as.factor(c("A","A","A","A","B","B","B","B","C","C","C","C"))
 
-y <- c(1,3,2,3,3,3,2,4)
+y <- as.numeric(c (1,3,3,2,4,3,2,3,2,3,3,2))
 
 data <- as.data.frame(cbind(x,y))
 
-all_sum_test("x", "y", data, alternative = "parametric")
-
+all_sum_test(x, y, data, alternative = "parametric")
 
 }
 \references{

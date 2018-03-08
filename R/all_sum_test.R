@@ -2,15 +2,15 @@
 #'
 #' Generic function to create tables and plots providing basic overall numerical and graphical summary in different groups for comparison, based on parametric and/or non-parametric approach.
 #'
-#' @param x   a vector that contains different levels whose summary results are wanted for comparison.
+#' @param x   a vector that contains different levels whose summary results are wanted for comparison
 #' @param y   a numeric vector of data values
-#' @param data  a data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables to be summarized.
-#' @param alternative	  a character string specifying the alternative approaches, must be one of "overall" (default), "parametric" or " non-parametric".
-#' @param graph	  logical. If TRUE the corresponding plots (bar plot, box plot) are returned.
+#' @param data  a data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables to be summarized
+#' @param alternative	  a character string specifying the alternative approaches, must be one of "overall" (default), "parametric" or " non-parametric"
+#' @param graph	  logical. If FALSE the corresponding plots (bar plot, box plot) are not returned. Default is TRUE (to return the plots)
 #' @param digits     the digits of the data values (default is 3)
-#' @param ...	  further arguments to be passed to or from methods.
+#' @param ...	  further arguments to be passed to or from methods
 #'
-#' @return  For parametric approach, it returns a table containing sample size, number of observations without missing value, mean, standard deviation for each level and F-test results, and a bar plot showing mean, standard error for each level and F-test results. For non-parametric approach, it returns a table containing sample size, number of observations without missing value, median, IQR for each level and Kruskal-Wallis test results, and a boxplot showing median, IQR for each level and Kruskal-Wallis test results. For overall, it returns a table containing both the summary results in parametric and non-parametric approach, a bar plot showing mean, standard error for each level and F-test results, and a boxplot showing median, IQR for each level and Kruskal-Wallis test results.
+#' @return  For parametric approach, it returns a table containing sample size, number of observations without missing value, mean, standard deviation for each level and F-test results, and a bar plot showing mean, standard error for each level and F-test results. For non-parametric approach, it returns a table containing sample size, number of observations without missing value, median, IQR for each level and Kruskal-Wallis test results, and a boxplot showing median, IQR for each level and Kruskal-Wallis test results. For overall, it returns a table containing both the summary results in parametric and non-parametric approach, a bar plot showing mean, standard error for each level and F-test results, and a boxplot showing median, IQR for each level and Kruskal-Wallis test results
 #'
 #' @references Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988) The New S Language. Wadsworth & Brooks/Cole.
 #'
@@ -19,14 +19,14 @@
 #' \code{\link[stats]{kruskal.test}}
 #'
 #' @examples
-#' x <- c(1,1,2,2,3,3,4,4)
+#' x <- as.factor(c("A","A","A","A","B","B","B","B","C","C","C","C"))
 #'
-#'y <- c(1,3,2,3,3,3,2,4)
+#'y <- as.numeric(c (1,3,3,2,4,3,2,3,2,3,3,2))
 #'
 #'data <- as.data.frame(cbind(x,y))
 #'
-#'all_sum_test("x", "y", data, alternative = "parametric")
-#'
+#'all_sum_test(x, y, data, alternative = "parametric")
+
 #'
 #'@import ggplot2
 #'@import multcomp
