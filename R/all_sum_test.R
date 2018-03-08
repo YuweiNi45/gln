@@ -34,7 +34,6 @@
 #'@export
 
 all_sum_test <- function(x, y, data, alternative, graph, digits = 3, ...){
-
   data_sum <- function(y){
     out <- data.frame(n = length(y),
                       n.complete = length(y[!is.na(y)]),

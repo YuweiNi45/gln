@@ -5,9 +5,17 @@
 #'@section Functions:
 #'The gln package provides five categories of important functions:
 #'
-#' data_sum: \code{\link[gln]{data_sum}}
 #'
 #' all_sum_test: \code{\link[gln]{all_sum_test}}
+#'
+#' posthoc_test: \code{\link[gln]{posthoc_test}}
+#'
+#' assumption_check:\code{\link[gln]{assumption_check}}
+#'
+#' @section Data:
+#' The gln package provide one data set to analysis or test the package, which names Mousedata. It is an analyze data used to evaluate leves of urinary PGE-M and and PGD-M in obese vs. lean mice +/- celecoxib.
+#'
+#' Mousedata: \code{\link[gln]{Mousedata}}
 #'
 #' @details Package: gln
 #'
@@ -17,7 +25,7 @@
 #'
 #' Depends:R(>=3.2.0)
 #'
-#' Imports: multcomp, tidyverse
+#' Imports: multcomp, tidyverse,devtools
 #'
 #' Suggests:formatR, knitr, rmarkdown
 #'
