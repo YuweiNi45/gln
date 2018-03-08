@@ -4,12 +4,12 @@
 \alias{posthoc_test}
 \title{create tables providing for post hoc analysis}
 \usage{
-posthoc_test(data, y, x, x1, K, method = c("tukey", "dunnett", "general",
+posthoc_test(dat, y, x, x1, K, method = c("tukey", "dunnett", "general",
   "holm", "notadjusted"), model = c("cellmean", "maineffect"), digits = 3,
   ...)
 }
 \arguments{
-\item{data}{a data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables to be summarized}
+\item{dat}{a data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables to be summarized}
 
 \item{y}{a numeric vector of data value}
 

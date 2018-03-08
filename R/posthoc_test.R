@@ -2,7 +2,7 @@
 #'
 #' To detect between which groups the difference is, the package produces different tables for post hoc analysis depending on one factor or two factors in the data.
 #'
-#'@param data	a data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables to be summarized
+#'@param dat	a data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables to be summarized
 #'@param y	a numeric vector of data value
 #'@param x	a vector that contains different levels whose summary results are wanted for comparison
 #'@param x1        a vector that contains different levels whose summary results are wanted for comparison. Only necessary for two-factor analysis
@@ -25,7 +25,7 @@
 #'
 #'@export
 posthoc_test <-
-  function(data,
+  function(dat,
            y,
            x,
            x1,
@@ -55,7 +55,7 @@ posthoc_test <-
       x1 <- factor(x1)
 
       ##linear regression
-      out1 <- lm(y ~ x * x1 - 1, data = data, ...)
+      out1 <- lm(y ~ x * x1 - 1, data = dat, ...)
 
 
       if (!missing(K)) {
@@ -421,7 +421,7 @@ posthoc_test <-
     } else {
       ## cell mean model
 
-      out1 <- lm(y ~ x - 1, data = data, ...)
+      out1 <- lm(y ~ x - 1, data = dat, ...)
 
       dunnett <- summary(glht(out1, linfct = mcp(x = "Dunnett")))
 
