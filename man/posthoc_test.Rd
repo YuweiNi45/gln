@@ -4,35 +4,41 @@
 \alias{posthoc_test}
 \title{create tables providing for post hoc analysis}
 \usage{
-posthoc_test(x, y, dat, method, K, digits = 3, ...)
+posthoc_test(dat, y, x, x1, K, method = c("tukey", "dunnett", "general",
+  "holm", "notadjusted"), model = c("cellmean", "maineffect"), digits = 3,
+  ...)
 }
 \arguments{
-\item{x}{a vector that contains different levels whose summary results are wanted for comparison.}
+\item{dat}{a data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables to be summarized}
 
-\item{y}{a numeric vector of data values}
+\item{y}{a numeric vector of data value}
 
-\item{dat}{a data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables to be summarized.}
+\item{x}{a vector that contains different levels whose summary results are wanted for comparison}
 
-\item{method}{the method to be used; for General linear hypotheses and multiple comparisons for parametric models; must be one of " tukey " (default), "dunnett", "general", "holm" or "none".}
+\item{x1}{a vector that contains different levels whose summary results are wanted for comparison. Only necessary for two-factor analysis}
 
 \item{K}{a matrix that contains the differences between different levels that are interested in}
 
+\item{method}{the method to be used; for General linear hypotheses and multiple comparisons for parametric models; must be one of " tukey " (default), "dunnett", "general", "holm" or "none"}
+
+\item{model}{the parametric models to be used; for linear regression and multiple comparisons; must be one of "cellmean"(default) or "maineffect"}
+
 \item{digits}{the digits of the data values (default is 3)}
 
-\item{...}{further arguments to be passed to or from methods.}
+\item{...}{further arguments to be passed to or from methods}
 }
 \value{
-The posthoc_test returns a table containing p-values for selected method, must be one of " tukey " (default), "dunnett", "general", "holm" or "none".  Missing values are removed by default.
+The posthoc_test returns a table containing p-values for selected method, must be one of " tukey " (default), "dunnett", "general", "holm" or "none". Missing values are removed by default
 }
 \description{
 To detect between which groups the difference is, the package produces different tables for post hoc analysis depending on one factor or two factors in the data.
 }
 \examples{
 x <- c("A","B","C","D","A","B","C","D","A","B","C","D")
-y <- c(1,3,2,3, 1,3,2,3, 1,3,2,3)
+y <- c(6,4,2,7, 3,10,9,3, 1,2,8,1)
 data1 <- as.data.frame(cbind(x,as.numeric(y)))
 data1$V2 <- as.numeric(data1$V2)
-posthoc_test(data1$x, data1$V2, data1)
+posthoc_test(data1, data1$V2, data1$x)
 
 
 }
