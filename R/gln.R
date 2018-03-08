@@ -3,7 +3,7 @@
 #'The "gln" is a set of functions that analysis whether there is difference in any of the means among different groups in our dataset. This package is designed to make it easy to install and load multiple "ANOVA" functions in a single step. The “gln” packages includes parametric (F-Test) and non-parametric method (KW-Test). The output contains both tables and figures based on the result of ANOVA analysis.
 #'
 #'@section Functions:
-#'The gln package provides five categories of important functions:
+#'The gln package provides three categories of important functions:
 #'
 #'
 #' all_sum_test: \code{\link[gln]{all_sum_test}}
