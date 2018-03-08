@@ -25,7 +25,7 @@
 #'
 #'@export
 posthoc_test <-
-  function(dat,
+  function(data,
            y,
            x,
            x1,
@@ -55,7 +55,7 @@ posthoc_test <-
       x1 <- factor(x1)
 
       ##linear regression
-      out1 <- lm(y ~ x * x1 - 1, data = dat, ...)
+      out1 <- lm(y ~ x * x1 - 1, data = data, ...)
 
 
       if (!missing(K)) {
@@ -421,7 +421,7 @@ posthoc_test <-
     } else {
       ## cell mean model
 
-      out1 <- lm(y ~ x - 1, data = dat, ...)
+      out1 <- lm(y ~ x - 1, data = data, ...)
 
       dunnett <- summary(glht(out1, linfct = mcp(x = "Dunnett")))
 
