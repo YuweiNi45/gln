@@ -548,11 +548,11 @@ posthoc_test(dat = Mousedata, y = Mousedata$Cr, x = Mousedata$Group, K = K1, met
 
 ## Contributions
 
-Xinye Gui: Creating package, function design and modification
+Xinye Gui: Documenting package, function design and modification
 
 Meng Lan: Documenting functions, package description, vignette
 
-Yuwei Ni: Documenting packages and functions, tutorial
+Yuwei Ni: Developing packages and documenting functions, tutorial
 
 
 ## References
