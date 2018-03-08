@@ -2,49 +2,47 @@
 % Please edit documentation in R/assumption_check.R
 \name{assumption_check}
 \alias{assumption_check}
-\title{create tables and graphs providing overall multiple comparison}
+\title{Create tables and graphs providing cell means model assumption checking}
 \usage{
 assumption_check(x, y, data, digits = 3, table = c(TRUE, FALSE),
   graph = c(TRUE, FALSE), ...)
 }
 \arguments{
-\item{x}{a vector that contains different levels whose summary results are wanted for comparison.}
+\item{x}{a vector that contains different levels whose variances are to be compared}
 
 \item{y}{a numeric vector of data values}
 
-\item{data}{a data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables to be summarized.}
+\item{data}{a data frame, list or environment (or object coercible by as.data.frame to a data frame)}
 
 \item{digits}{the digits of the data values (default is 3)}
 
-\item{graph}{logical. If TRUE the corresponding plots (bar plot, box plot) are returned.}
+\item{table}{a boolean value specifying providing table or not, must be TRUE (default) or FALSE}
 
-\item{...}{further arguments to be passed to or from methods.}
+\item{graph}{a boolean value specifying providing graph or not, must be TRUE (default) or FALSE}
 
-\item{alternative}{a character string specifying the alternative approaches, must be one of "overall" (default), "parametric" or " non-parametric".}
+\item{...}{further arguments to be passed.}
 }
 \value{
-For parametric approach, it returns a table containing sample size, number of observations without missing value, mean, standard deviation for each level and F-test results, and a bar plot showing mean, standard error for each level and F-test results. For non-parametric approach, it returns a table containing sample size, number of observations without missing value, median, IQR for each level and Kruskal-Wallis test results, and a boxplot showing median, IQR for each level and Kruskal-Wallis test results. For overall, it returns a table containing both the summary results in parametric and non-parametric approach, a bar plot showing mean, standard error for each level and F-test results, and a boxplot showing median, IQR for each level and Kruskal-Wallis test results.
+By default, it returns both tables and graphs. Tables contain results of Shapiro-Wilk normality test and Bartlett test. Graphs are qq-plot, boxplot, residual plot and histogram. If only asking for graphs, specify table = False. If only asking for tables, specify graph = False.
 }
 \description{
-Generic function to create tables and plots providing basic overall numerical and graphical summary in different groups for comparison, based on parametric and/or non-parametric approach.
+Based on cell means model, model assumption checking was performed by displaying tables containing test results and graphs. Normality and heteroscedasticity are examined in this function. Shapiro-Wilk normality test, qq-plot and histogram are provided to test normality. Bartlett test, residual plot and boxplot are for heteroscedasticity test.
 }
 \examples{
-x <- c(1,1,2,2,3,3,4,4)
+x <- c (1,1,1,1,2,2,2,2,3,3,3,3)
 
-y <- c(1,3,2,3,3,3,2,4)
+y <- c (1,3,3,2,4,3,2,3,2,3,3,2)
 
-data <- as.data.frame(cbind(x,y))
+data <- data.frame(cbind(x,y))
 
-all_sum_test("x", "y", data, alternative = "parametric")
-
-all_sum_test(x,y,data)
+assumption_check(x,y,data)
 
 }
 \references{
 Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988) The New S Language. Wadsworth & Brooks/Cole.
 }
 \seealso{
-\code{\link[stats]{anova}}
+\code{\link[stats]{shapiro.test}}
 
-\code{\link[stats]{kruskal.test}}
+\code{\link[stats]{bartlett.test}}
 }
