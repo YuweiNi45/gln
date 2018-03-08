@@ -27,7 +27,6 @@
 #'
 #'all_sum_test("x", "y", data, alternative = "parametric")
 #'
-#'all_sum_test(x,y,data)
 #'
 #'@import ggplot2
 #'@import multcomp

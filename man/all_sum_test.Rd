@@ -36,7 +36,6 @@ data <- as.data.frame(cbind(x,y))
 
 all_sum_test("x", "y", data, alternative = "parametric")
 
-all_sum_test(x,y,data)
 
 }
 \references{
