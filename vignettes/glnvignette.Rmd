@@ -18,413 +18,532 @@ knitr::opts_chunk$set(
 
 ## Abstract
 
-This document gives a gallery of well-formatted summary tables and graphs which can be made using the gln package for comparing continuous data in multiple groups. To examine whether there is difference across the groups, overall tables and graphs are provided for comparison using parametric and/or nonparametric approach. To detect between which groups the difference is, the package produces different tables for post hoc analysis depending on one factor or two factors in the data. This package is designed to make it easy to install and load multiple functions in a single step.
+This document gives a gallery of well-formatted summary tables and graphs which can be made using the gln package for comparing continuous data in multiple groups. To check the model assumptionm, tables containing test results and graphs are displayed for normality and heteroscedasticity test.To examine whether there is difference across the groups, overall tables and graphs are provided for comparison using parametric and/or nonparametric approach. To detect between which groups the difference is, the package produces different tables for post hoc analysis depending on one factor or two factors in the data. This package is designed to make it easy to install and load multiple functions in a single step.
 
 ## Introduction
 
 gln is an R package that creates code for well-formatted tables and graphs for multiple comparison using ANOVA and non-parametric method. The first step is to load the package. 
 
 ```{r,echo=TRUE}
-install.packages("devtools")
-devtools::install_github("YuweiNi45/gln")
-library(gln)
-data(Mousedata)
-dat<-Mousedata
-dat
+suppressMessages(devtools::install_github("YuweiNi45/gln"))
+suppressWarnings(suppressMessages(library(gln)))
 ```
 
 ## Examples
 
-### Overall Summary
-```{r,echo=FALSE}
-library(multcomp) #after library gln, no need.
-library(tidyverse) #after library gln, no need.
-dat$Group <- as.factor(dat$Group)
-#dat
-all_sum_test <- function(x, y, data, alternative, graph, digits = 3, ...){
+### Assumption checking
 
-  data_sum <- function(y){
-    out <- data.frame(n = length(y),
-                      n.complete = length(y[!is.na(y)]),
-                      mean = mean(y, na.rm=T),
-                      sd = sd(y, na.rm=T),
-                      median = median(y, na.rm=T),
-                      lower_quartile = quantile(y, 0.25, na.rm=T),
-                      upper_quartile = quantile(y, 0.75, na.rm=T))
-    return(out)
-  }
-  y_graph <- y
+Based on cell means model, model assumption checking was performed by displaying tables containing test results and graphs. Normality and heteroscedasticity are examined in this function. Shapiro-Wilk normality test, qq-plot, histogram are provided to test normality. Bartlett test, residual plot and boxplot are for heteroscedasticity test.
 
-  x <- unname(factor(unlist(data[x])))
-  y <- unname(as.numeric(unlist(data[y])))
+```{r, include=FALSE,echo=FALSE}
+assumption_check <-
+  function(x,
+           y,
+           data,
+           digits = 3,
+           table = c(TRUE, FALSE),
+           graph = c(TRUE, FALSE),
+           ...) {
+    out <- lm(y ~ x - 1, data = data, ...)
 
-  smry <- tapply(y, x, data_sum)
-  smry <- do.call(rbind, smry)
+    qqplot <-
+      ggplot(data, aes(sample = rstudent(out))) +
+      stat_qq(shape = 1, size = 3) +
+      geom_abline(slope = 1, intercept = 0) +
+      theme(panel.background = element_rect(fill = "white", colour = "black")) +
+      ggtitle("Normal Q-Q Plot") +
+      xlab("Theoreticla Quantiles") +
+      ylab("Sample Quantiles")
 
-  lm <- lm (y ~ x, data = data, ...)
+    f <- length(x)
 
-  anova <- anova(lm (y ~ 1, data = data, ...),lm)
+    data1 <- data.frame(1:f, rstudent(out))
 
-  kruskal <- kruskal.test(y~x)
+    variance <- ggplot(data1, aes(1:f, rstudent(out))) +
+      geom_point(shape = 3, size = 3) +
+      theme(panel.background = element_rect(fill = "white", colour = "black")) +
+      xlab("Index") +
+      ylab("Studentized Residual")
 
-  test<-function(x){
-    if(x < 0.001) x.txt<- "<0.001"
-    else if(x<0.05) x.txt<-"<0.05"
-    else x.txt<- format(x,digits = 2)
-    x.txt
-  }
+    shap.text <- shapiro.test(y)
+    bar.test <- bartlett.test(y, x)
 
-  numrow <- nrow(smry)-1
+    ##preparing for the y lab
 
-  p_anova <- test(anova$`Pr(>F)`[2])
+    y_length <- length(y)
 
-  p_kw <- test(kruskal$p.value)
+    data_names <- colnames(data)
 
-  out <- data.frame(smry[,1:2],
-                    mean.sd = paste0(format(smry$mean, digits=digits),
-                                     " +/- ",
-                                     format(smry$sd, digits=digits)),
-                    median.IQR = paste0(format(smry$median, digits=digits),
-                                        " (",
-                                        format(smry$lower_quartile, digits=digits), ",", format(smry$upper_quartile, digits = digits), ")"),
-                    p.anova=paste0(c(rep("", numrow), p_anova)),
-                    p.kw=paste0(c(rep("", numrow), p_kw))
-  )
-  names(out)[3] <- "mean +/- sd"
-  names(out)[4] <- "median(IQR)"
+    name_length <- length(data_names)
 
-  graph_test <- function(x){
-    if(x < 0.001) x.txt<- "<0.001"
-    else if(x<0.05) x.txt<-"<0.05"
-    else x.txt<- paste("=", format(x,digits = 2))
-    x.txt
-  }
+    result <- numeric(name_length)
 
-  p_anova_graph <- graph_test(anova$`Pr(>F)`[2])
-
-  p_kw_graph <- graph_test(kruskal$p.value)
-
-  ##making the plot
-  x_cat <- levels(x)
-
-  x_num <- length(x_cat)
-
-  x_mean <- numeric(x_num)
-
-  x_se <- numeric(x_num)
-
-  for (i in 1:x_num) {
-    x_mean[i] <- mean(y[which(x == x_cat[i])])
-  }
-
-  for (i in 1:x_num) {
-    x_se[i] <- sd(y[which(x == x_cat[i])])/sqrt(length(y[which(x == x_cat[i])]))
-  }
-
-  data1 <- data.frame(x_mean, x_cat, x_se)
-
-  dodge <- position_dodge(width = 0.9)
-  limits <- aes(ymax = data1$x_mean + data1$x_se,
-                ymin = data1$x_mean - data1$x_se)
-
-  graph1 <-
-    ggplot(data1, aes(x_cat, x_mean, fill = x_cat)) +
-    geom_bar(stat="identity") +
-    geom_errorbar(limits, position = dodge, width = 0.25) +
-    annotate("text", label = paste("P", p_anova_graph, sep = ""), x = 1, y = ceiling(min(x_mean + x_se) + max(x_mean + x_se)), size = 3) +
-    theme(panel.background = element_rect(fill = "white", colour = "black"), axis.title.x=element_blank()) +
-    labs(y = y_graph, fontface="bold") +
-    theme(legend.position="none")
-
-  graph2 <-
-    ggplot(data, aes(x, y, fill = x)) +
-    geom_boxplot() +
-    annotate("text", label = paste("P", p_kw_graph, sep = ""), x = 1, y = ceiling(min(x_mean + x_se) + max(x_mean + x_se)), size = 3) +
-    theme(panel.background = element_rect(fill = "white", colour = "black"), axis.title.x=element_blank()) +
-    labs(y = y_graph, fontface="bold") +
-    theme(legend.position="none")
-
-  if (!missing(alternative)) {
-    if (alternative == "overall"){
-      if (!missing(graph)){
-        if (graph == T){
-          return(list(out, graph1, graph2))
-        }
-        else {
-          return(out)
-        }
-      }else {
-        return(list(out, graph1, graph2))
-      }
+    for (i in 1:name_length) {
+      result[i] <- sum(y %in% factor(unlist(data[data_names[i]])))
     }
-    else if (alternative == "parametric"){
-      if (!missing(graph)){
-        if (graph == F){
-          return(out[,c(1:3, 5)])
-        }
-        else {
-          return(list(out[,c(1:3, 5)], graph1))
-        }
+
+    y_graph <- data_names[which(result == y_length)]
+
+    graph2 <-
+      ggplot(data, aes(x, y, fill = x)) +
+      geom_boxplot() +
+      labs(y = y_graph, fontface = "bold") +
+      theme(
+        panel.background = element_rect(fill = "white", colour = "black"),
+        axis.title.x = element_blank()
+      ) +
+      theme(legend.position = "none")
+
+    hist <-
+      ggplot(data, aes(y)) +
+      geom_histogram(binwidth = (max(y) - min(y)) / length(y)) +
+      theme(
+        panel.background = element_rect(fill = "white", colour = "black"),
+        axis.title.x = element_blank()
+      ) +
+      labs(title = paste("Histogram of ", y_graph, sep = ""),
+           fontface = "bold")
+
+    table1 <-
+      data.frame(
+        p.shap.text = format(shap.text$p.value, digits = digits),
+        p.bar.test = format(bar.test$p.value, digits = digits)
+      )
+
+    if (!missing(table) && !missing(graph)) {
+      if (table == TRUE && graph == TRUE) {
+        lst <- list(table1, qqplot, variance, graph2, hist)
+        names(lst) <-
+          c(
+            "Shapiro-Wilk Normality Test & Bartlett test",
+            "QQ-plot",
+            "Assessing equal variance assumption",
+            "Boxplot",
+            "Histogram"
+          )
+      } else if (table == TRUE && graph == FALSE) {
+        lst <- list(table1)
+        names(lst) <-
+          c("Shapiro-Wilk Normality Test & Bartlett test")
+      } else if (table == FALSE && graph == TRUE) {
+        lst <- list(qqplot, variance, graph2, hist)
+        names(lst) <-
+          c("QQ-plot",
+            "Assessing equal variance assumption",
+            "Boxplot",
+            "Histogram")
       } else {
-        return(list(out[,c(1:3, 5)], graph1))
+        lst <- "Null"
       }
-    }
-    else if (alternative == "nonparametric") {
-      if (!missing(graph)){
-        if (graph == F) {
-          return(out[,c(1:2, 4, 6)])
-
-        }
-        else{
-          return(list(out[,c(1:2, 4, 6)], graph2))
-        }
+    } else if (!missing(table) && missing(graph)) {
+      if (table == TRUE) {
+        lst <- list(table1, qqplot, variance, graph2, hist)
+        names(lst) <-
+          c(
+            "Shapiro-Wilk Normality Test & Bartlett test",
+            "QQ-plot",
+            "Assessing equal variance assumption",
+            "Boxplot",
+            "Histogram"
+          )
       } else {
-        return(list(out[,c(1:2, 4, 6)], graph2))
+        lst <- list(qqplot, variance, graph2, hist)
+        names(lst) <-
+          c("QQ-plot",
+            "Assessing equal variance assumption",
+            "Boxplot",
+            "Histogram")
       }
+    } else if (missing(table) && !missing(graph)) {
+      if (graph == TRUE) {
+        lst <- list(table1, qqplot, variance, graph2, hist)
+        names(lst) <-
+          c(
+            "Shapiro-Wilk Normality Test & Bartlett test",
+            "QQ-plot",
+            "Assessing equal variance assumption",
+            "Boxplot",
+            "Histogram"
+          )
+      } else {
+        lst <- list(table1)
+        names(lst) <-
+          c("Shapiro-Wilk Normality Test & Bartlett test")
+      }
+    } else {
+      lst <- list(table1, qqplot, variance, graph2, hist)
+      names(lst) <-
+        c(
+          "Shapiro-Wilk Normality Test & Bartlett test",
+          "QQ-plot",
+          "Assessing equal variance assumption",
+          "Boxplot",
+          "Histogram"
+        )
     }
+
+    return(lst)
+
   }
-  else {
-    if (!missing(graph)){
-      if (graph == F){
-        return(out)
-      }
-      else {
-        return(list(out, graph1, graph2))
-      }
-    }else {
-      return(list(out, graph1, graph2))
-    }
-  }
-}
 ```
 
+By default, it returns both tables and graphs. Tables contain results of Shapiro-Wilk normality test and Bartlett test. Graphs are qq-plot, boxplot, residual plot and histogram. 
+
+```{r}
+assumption_check(Mousedata$Group,Mousedata$Cr,Mousedata)
+```
+
+If only asking for graphs, specify table = False.
+
+```{r}
+assumption_check(Mousedata$Group,Mousedata$Cr,Mousedata,table = F)
+```
+
+If only asking for tables, specify graph = False.
+```{r}
+assumption_check(Mousedata$Group,Mousedata$Cr,Mousedata,graph = F)
+```
+
+### Overall Summary
+
+```{r,echo=FALSE}
+all_sum_test <-
+  function(x,
+           y,
+           data,
+           alternative = c("overall", "parametric", "nonparametric"),
+           graph = c(TRUE, FALSE),
+           digits = 3,
+           ...) {
+    alternative <- match.arg(alternative)
+
+    data_sum <- function(y) {
+      out <- data.frame(
+        n = length(y),
+        n.complete = length(y[!is.na(y)]),
+        mean = mean(y, na.rm = T),
+        sd = sd(y, na.rm = T),
+        median = median(y, na.rm = T),
+        lower_quartile = quantile(y, 0.25, na.rm = T),
+        upper_quartile = quantile(y, 0.75, na.rm = T)
+      )
+      return(out)
+    }
+
+    smry <- tapply(y, x, data_sum)
+    smry <- do.call(rbind, smry)
+
+    lm <- lm (y ~ x, data = data, ...)
+
+    anova <- anova(lm (y ~ 1, data = data, ...), lm)
+
+    kruskal <- kruskal.test(y ~ x)
+
+    test <- function(x) {
+      if (x < 0.001)
+        x.txt <- "<0.001"
+      else if (x < 0.05)
+        x.txt <- "<0.05"
+      else
+        x.txt <- format(x, digits = 2)
+      x.txt
+    }
+
+    numrow <- nrow(smry) - 1
+
+    p_anova <- test(anova$`Pr(>F)`[2])
+
+    p_kw <- test(kruskal$p.value)
+
+    out <- data.frame(
+      smry[, 1:2],
+      mean.sd = paste0(
+        format(smry$mean, digits = digits),
+        " +/- ",
+        format(smry$sd, digits = digits)
+      ),
+      median.IQR = paste0(
+        format(smry$median, digits = digits),
+        " (",
+        format(smry$lower_quartile, digits =
+                 digits),
+        ",",
+        format(smry$upper_quartile, digits = digits),
+        ")"
+      ),
+      p.anova = paste0(c(rep("", numrow), p_anova)),
+      p.kw = paste0(c(rep("", numrow), p_kw))
+    )
+    names(out)[3] <- "mean +/- sd"
+    names(out)[4] <- "median(IQR)"
+
+    graph_test <- function(x) {
+      if (x < 0.001)
+        x.txt <- "<0.001"
+      else if (x < 0.05)
+        x.txt <- "<0.05"
+      else
+        x.txt <- paste("=", format(x, digits = 2))
+      x.txt
+    }
+
+    p_anova_graph <- graph_test(anova$`Pr(>F)`[2])
+
+    p_kw_graph <- graph_test(kruskal$p.value)
+
+    ##making the plot
+    x_cat <- levels(x)
+
+    x_num <- length(x_cat)
+
+    x_mean <- numeric(x_num)
+
+    x_se <- numeric(x_num)
+
+    for (i in 1:x_num) {
+      x_mean[i] <- mean(y[which(x == x_cat[i])])
+    }
+
+    for (i in 1:x_num) {
+      x_se[i] <-
+        sd(y[which(x == x_cat[i])]) / sqrt(length(y[which(x == x_cat[i])]))
+    }
+
+    data1 <- data.frame(x_mean, x_cat, x_se)
+
+    dodge <- position_dodge(width = 0.9)
+    limits <- aes(ymax = data1$x_mean + data1$x_se,
+                  ymin = data1$x_mean - data1$x_se)
+
+    ##preparing for the y lab
+
+    y_length <- length(y)
+
+    data_names <- colnames(data)
+
+    name_length <- length(data_names)
+
+    result <- numeric(name_length)
+
+    for (i in 1:name_length) {
+      result[i] <- sum(y %in% factor(unlist(data[data_names[i]])))
+    }
+
+    y_graph <- data_names[which(result == y_length)]
+
+    ##plotting
+    graph1 <-
+      ggplot(data1, aes(x_cat, x_mean, fill = x_cat)) +
+      geom_bar(stat = "identity") +
+      geom_errorbar(limits, position = dodge, width = 0.25) +
+      annotate(
+        "text",
+        label = paste("P", p_anova_graph, sep = ""),
+        x = 1,
+        y = ceiling(min(x_mean + x_se) + max(x_mean + x_se)),
+        size = 3
+      ) +
+      theme(
+        panel.background = element_rect(fill = "white", colour = "black"),
+        axis.title.x = element_blank()
+      ) +
+      labs(y = y_graph, fontface = "bold") +
+      theme(legend.position = "none")
+
+    graph2 <-
+      ggplot(data, aes(x, y, fill = x, group = x)) +
+      geom_boxplot() +
+      annotate(
+        "text",
+        label = paste("P", p_kw_graph, sep = ""),
+        x = 1,
+        y = ceiling(min(x_mean + x_se) + max(x_mean + x_se)),
+        size = 3
+      ) +
+      theme(
+        panel.background = element_rect(fill = "white", colour = "black"),
+        axis.title.x = element_blank()
+      ) +
+      labs(y = y_graph, fontface = "bold") +
+      theme(legend.position = "none")
+
+    if (!missing(alternative)) {
+      if (alternative == "parametric") {
+        if (!missing(graph)) {
+          if (graph == F) {
+            return(out[, c(1:3, 5)])
+          }
+          else {
+            lst <- list(out[, c(1:3, 5)], graph1)
+            names(lst) <- c("Numerical Analysis", "Barplot")
+            return(lst)
+          }
+        } else {
+          lst <- list(out[, c(1:3, 5)], graph1)
+          names(lst) <- c("Numerical Analysis", "Barplot")
+          return(lst)
+        }
+      }
+      else if (alternative == "nonparametric") {
+        if (!missing(graph)) {
+          if (graph == F) {
+            return(out[, c(1:2, 4, 6)])
+          }
+          else{
+            lst <- list(out[, c(1:2, 4, 6)], graph2)
+            names(lst) <- c("Numerical Analysis", "Boxplot")
+            return(lst)
+          }
+        } else {
+          lst <- list(out[, c(1:2, 4, 6)], graph2)
+          names(lst) <- c("Numerical Analysis", "Boxplot")
+          return(lst)
+        }
+      } else {
+        if (!missing(graph)) {
+          if (graph == T) {
+            lst <- list(out, graph1, graph2)
+            names(lst) <-
+              c("Numerical Analysis", "Barplot", "Boxplot")
+            return(lst)
+          }
+          else {
+            return(out)
+          }
+        } else {
+          lst <- list(out, graph1, graph2)
+          names(lst) <- c("Numerical Analysis", "Barplot", "Boxplot")
+          return(lst)
+        }
+      }
+    }
+    else {
+      if (!missing(graph)) {
+        if (graph == F) {
+          return(out)
+        }
+        else {
+          lst <- list(out, graph1, graph2)
+          names(lst) <- c("Numerical Analysis", "Barplot", "Boxplot")
+          return(lst)
+        }
+      } else {
+        lst <- list(out, graph1, graph2)
+        names(lst) <- c("Numerical Analysis", "Barplot", "Boxplot")
+        return(lst)
+      }
+    }
+  }
+```
 
 For overall multiple comparison, by default (or specifying "overall") it returns a table containing both the summary results in parametric and non-parametric approach, a bar plot showing mean, standard error for each level and F-test results, and a boxplot showing median, IQR for each level and Kruskal-Wallis test results.
 
 ```{r,echo=TRUE}
-all_sum_test ("Group", "Cr", data=dat)
+all_sum_test (Mousedata$Group, Mousedata$Cr, data=Mousedata)
 ```
 
 Specifying parametric approach, it returns a table containing sample size, number of observations without missing value, mean, standard deviation for each level and F-test results, and a bar plot showing mean, standard error for each level and F-test results.
 
 ```{r}
-all_sum_test ("Group", "Cr", data=dat,alternative = "parametric")
+all_sum_test (Mousedata$Group, Mousedata$Cr, data=Mousedata,alternative = "parametric")
 ```
 
 Specifying nonparametric approach, it returns a table containing sample size, number of observations without missing value, mean, standard deviation for each level and F-test results, and a bar plot showing mean, standard error for each level and F-test results.
 
 ```{r}
-all_sum_test ("Group", "Cr", data=dat,alternative = "nonparametric")
+all_sum_test (Mousedata$Group, Mousedata$Cr, data=Mousedata,alternative = "nonparametric")
 ```
 
-Specifying graph is False, the graphs will not be displayed.
+Specifying graph is False, the graphs will not be displayed and only table will be returned.
 
 ```{r}
-all_sum_test ("Group", "Cr", data=dat, graph = F)
+all_sum_test (Mousedata$Group, Mousedata$Cr, data=Mousedata, graph = F)
 ```
 
 ### Post Hoc Analysis
-```{r, echo=FALSE}
-posthoc_test <- function(x, y, dat, method, K, digits=3, ...){
 
-  x <- as.factor(x)
+```{r,echo=FALSE}
+Mousedata$Diet.fat.perc <- c("10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "10%", "60%", "60%", "60%", "60%", "60%", "60%", "60%", "60%", "60%", "60%", "60%")
 
-  test<-function(x){
-    if(x < 0.001) x.txt<- "<0.001"
-    else if(x<0.05) x.txt<-"<0.05"
-    else x.txt<- format(x,digits = 2)
-    x.txt
-  }
-
-  if(!missing(K)){
-
-    out <- lm(y ~ x, data = dat, ...)
-
-    ##parametric
-
-    dunnett <- summary(glht(out, linfct = mcp(x = "Dunnett")))
-
-    tukey <- summary(glht(out, linfct = mcp(x = "Tukey")))
-
-    general <- summary(glht(out, linfct=mcp(x=K)))
-
-    holm <- summary(glht(out, linfct=mcp(x=K)), test=adjusted(type="holm"))
-
-    non_adjusted <- summary(glht(out, linfct=mcp(x=K)), test=adjusted(type="none"))
-
-    ##dunnett
-
-    dunnett_p <- dunnett$test$pvalues
-    dunnett_p1 <- unname(dunnett_p, force = FALSE)
-
-    np1 <- length(dunnett_p1)
-
-    p.dunnett<-numeric(np1)
-
-    for (i in 1:np1) {
-      p.dunnett[i] <- test(dunnett_p1[i])
-    }
-
-    ##tukey
-
-    tukey_p <- tukey$test$pvalues
-    tukey_p1 <- unname(tukey_p, force = FALSE)
-
-    np2 <- length(tukey_p1)
-
-    p.tukey<-numeric(np2)
-
-    for (i in 1:np2) {
-      p.tukey[i] <- test(tukey_p1[i])
-    }
-
-    ##general
-
-    general_p <- general$test$pvalues
-    general_p1 <- unname(general_p, force = FALSE)
-
-    np3 <- length(general_p1)
-
-    p.general<-numeric(np3)
-
-    for (i in 1:np3) {
-      p.general[i] <- test(general_p1[i])
-    }
-
-    ##holm
-    holm_p <- holm$test$pvalues
-    holm_p1 <- unname(holm_p, force = FALSE)
-
-    np4 <- length(holm_p1)
-
-    p.holm<-numeric(np4)
-
-    for (i in 1:np4) {
-      p.holm[i] <- test(holm_p1[i])
-    }
-
-    #non adjusted
-    non_adjusted_p <- non_adjusted$test$pvalues
-    non_adjusted_p1 <- unname(non_adjusted_p, force = FALSE)
-
-    np5 <- length(non_adjusted_p1)
-
-    p.nonad<-numeric(np5)
-
-    for (i in 1:np5) {
-      p.nonad[i] <- test(non_adjusted_p1[i])
-    }
-
-    if(!missing(method)){
-      if (method == "dunnett"){
-        out <- data.frame(pm.p.dunnett=p.dunnett,
-                          pm.p=p.nonad
-        )
-      } else if (method == "tukey"){
-        out <- data.frame(pm.p.tukey=p.tukey,
-                          pm.p=p.nonad
-        )
-      } else if (method == "general"){
-        out <- data.frame(pm.p.general=p.general,
-                          pm.p=p.nonad
-        )
-      } else if (method == "holm"){
-        out <- data.frame(pm.p.holm=p.holm,
-                          pm.p=p.nonad
-        )
-      }
-    } else {
-      out <- data.frame(pm.p.tukey=p.tukey,
-                        pm.p=p.nonad
-      )
-    }
-
-    rownames(out) <- rownames(K)
-  }
-  else {
-    #don't have k matrix
-
-    out <- lm(y ~ x, data = dat, ...)
-
-    dunnett <- summary(glht(out, linfct = mcp(x = "Dunnett")))
-
-    tukey <- summary(glht(out, linfct = mcp(x = "Tukey")))
-
-    ##dunnett
-
-    dunnett_p <- dunnett$test$pvalues
-    dunnett_p1 <- unname(dunnett_p, force = FALSE)
-
-    np1 <- length(dunnett_p1)
-
-    p.dunnett<-numeric(np1)
-
-    for (i in 1:np1) {
-      p.dunnett[i] <- test(dunnett_p1[i])
-    }
-
-    ##tukey
-
-    tukey_p <- tukey$test$pvalues
-    tukey_p1 <- unname(tukey_p, force = FALSE)
-
-    np2 <- length(tukey_p1)
-
-    p.tukey<-numeric(np2)
-
-    for (i in 1:np2) {
-      p.tukey[i] <- test(tukey_p1[i])
-    }
-
-    if(!missing(method)){
-      if (method == "dunnett"){
-        out <- data.frame(pm.p.dunnett=p.dunnett
-        )
-        rownames(out) <- rownames(dunnett$linfct)
-      } else if (method == "tukey"){
-        out <- data.frame(pm.p.tukey=p.tukey
-        )
-        rownames(out) <- rownames(tukey$linfct)
-      }
-    }else {
-      out <- data.frame(pm.p.tukey=p.tukey
-      )
-      rownames(out) <- rownames(tukey$linfct)
-    }
-  }
-  return(out)
-}
+Mousedata$celecoxib <- c("No", "No", "No", "No", "No", "No", "celecoxib", "celecoxib", "celecoxib", "celecoxib", "celecoxib", "celecoxib", "No", "No", "No", "No", "No", "celecoxib", "celecoxib", "celecoxib", "celecoxib", "celecoxib", "celecoxib")
 ```
 
-By default, it returns a table containing pair-wised comparison whose p-values are adjusted by Tukey's method.
+For post hoc analysis for multiple comparison, by default (or specifying method as “tukey”, model as “cellmean”), it returns a table containing p-values adjusted by Tukey’s method of General Linear Hypotheses and p-values that are not adjusted for famliy-wise error, by using selected cell mean model.
 
 ```{r}
-posthoc_test (dat$Group, dat$Cr, dat)
+
+posthoc_test(dat = Mousedata, y = Mousedata$Cr, x = Mousedata$Group)
+
 ```
 
-When method is Dunnett, it returns a table containing comparison with control group whose p-values are adjusted by Dunnett's method.
+For post hoc analysis for multiple comparison, by default for model (or specifying model as "cellmean") and specifying method as "dunnett", it returns a table containing p-values adjusted by Dunnett's method of General Linear Hypotheses and p-values that didn't adjust for famliy-wise error, by using selected cell mean model.
 
 ```{r}
-posthoc_test (dat$Group, dat$Cr, dat, method = "dunnett")
+
+posthoc_test(dat = Mousedata, y = Mousedata$Cr, x = Mousedata$Group, method = "dunnett")
+
 ```
 
-When users define contrasts themselves for multiple comparisons of means and the method is general, it returns a table containing p-values adjusted for family-wise error by using single-step method and not adjusted ones.
+For post hoc analysis for multiple comparison, by default for model (or specifying model as "cellmean"), specifying method as "general" and user defined K matrix, it returns a table containing p-values adjusted by general approach in R to evaluating linear contrast and p-values that didn't adjust for famliy-wise error, by using selected cell mean model.
 
 ```{r}
-K <- rbind("HF.OVX.Celecoxib - HF.OVX" = c(-1,1,0,0),
-           "LF.Celecoxib - LF" = c(0,0,-1,1),
-           "HF.OVX - LF" = c(1,0,-1,0),
-           "HF.OVX.Celecoxib - LF.Celecoxib" = c(0,1,0,-1),
-           "HF.OVX.Celecoxib + LF.Celecoxib - LF - HF.OVX" = c(-1,1,-1,1),
-           "HF.OVX.Celecoxib + HF.OVX - LF.Celecoxib - LF" = c(1,1,-1,-1),
-           "HF.OVX.Celecoxib - HF.OVX - LF.Celecoxib + LF"= c(1,-1,-1,1))
-posthoc_test (dat$Group, dat$Cr, dat, method = "general", K = K)
+K1 <- rbind("HF.OVX.Celecoxib - HF.OVX" = c(-1,1,0,0),
+"LF.Celecoxib - LF" = c(0,0,-1,1),
+"HF.OVX - LF" = c(1,0,-1,0),
+"HF.OVX.Celecoxib - LF.Celecoxib" = c(0,1,0,-1),
+"HF.OVX.Celecoxib + LF.Celecoxib - LF - HF.OVX" = c(-1,1,-1,1),
+"HF.OVX.Celecoxib + HF.OVX - LF.Celecoxib - LF" = c(1,1,-1,-1),
+"HF.OVX.Celecoxib - HF.OVX - LF.Celecoxib + LF"= c(1,-1,-1,1))
+
+posthoc_test(dat = Mousedata, y = Mousedata$Cr, x = Mousedata$Group, K = K1, method = "general")
 ```
 
-When users define contrasts themselves for multiple comparisons of means and the method is holm, meaning users define contrasts themselves for multiple comparisons of means, it returns a table containing p-values adjusted for family-wise error by using Bonferroni-Holm method and not adjusted ones.
+For post hoc analysis for multiple comparison, by specifying model as "cellmean", method as "holm" and user defined K matrix, it returns a table containing p-values adjusted by Bonferroni-Holm method and p-values that didn't adjust for famliy-wise error, by using selected cell mean model.
 
 ```{r}
-posthoc_test (dat$Group, dat$Cr, dat, method = "holm", K = K)
+posthoc_test(dat = Mousedata, y = Mousedata$Cr, x = Mousedata$Group, K = K1, method = "holm", model = "cellmean")
+```
+
+For post hoc analysis for multiple comparison, by default for method (or specifying method as “tukey”), and specifying model as “maineffect”, it returns a table containing p-values adjusted by Tukey’s method of General Linear Hypotheses and p-values that are not adjusted for famliy-wise error, by using selected main effect model.
+
+```{r}
+posthoc_test(dat = Mousedata, y = Mousedata$Cr, x = Mousedata$Diet.fat.perc, x1 = Mousedata$celecoxib, model = "maineffect")
+```
+
+For post hoc analysis for multiple comparison, by specifying method as “dunnett”, model as “maineffect”, and user defined K matrix, it returns a table containing p-values adjusted by Dunnett's method of General Linear Hypotheses and p-values that are not adjusted for famliy-wise error, by using selected main effect model.
+
+```{r}
+K2 <- rbind("HF.OVX.Celecoxib - HF.OVX" = c(0,0,1,1),
+"LF.Celecoxib - LF" = c(0,0,1,0),
+"HF.OVX - LF" = c(0,1,0,0),
+"HF.OVX.Celecoxib - LF.Celecoxib" = c(0,1,0,1),
+"HF.OVX.Celecoxib + LF.Celecoxib - LF - HF.OVX" = c(0, 0,2,1),
+"HF.OVX.Celecoxib + HF.OVX - LF.Celecoxib - LF" = c(0,2,0,1),
+"HF.OVX.Celecoxib - HF.OVX - LF.Celecoxib + LF"= c(0,0,0,1))
+
+posthoc_test(dat = Mousedata, y = Mousedata$Cr, x = Mousedata$Diet.fat.perc, x1 = Mousedata$celecoxib, K = K2, method = "dunnett", model = "maineffect")
+
+```
+
+For post hoc analysis for multiple comparison, by specifying method as “general”, model as “maineffect”, and user defined K matrix, it returns a table containing p-values adjusted by general approach in R to evaluating linear contrast and p-values that are not adjusted for famliy-wise error, by using selected main effect model.
+
+```{r}
+posthoc_test(dat = Mousedata, y = Mousedata$Cr, x = Mousedata$Diet.fat.perc, x1 = Mousedata$celecoxib, K = K2, method = "general", model = "maineffect")
+```
+
+For post hoc analysis for multiple comparison, by specifying method as “holm”, model as “maineffect”, and user defined K matrix, it returns a table containing p-values adjusted by Bonferroni-Holm method and p-values that are not adjusted for famliy-wise error, by using selected main effect model.
+
+```{r}
+posthoc_test(dat = Mousedata, y = Mousedata$Cr, x = Mousedata$Diet.fat.perc, x1 = Mousedata$celecoxib, K = K2, method = "holm", model = "maineffect")
+```
+
+Weighted least squares regression:
+For post hoc analysis for multiple comparison, by default for model (or specifying model as "cellmean"), method as "holm", user defined K matrix and user-defined weights, which is used in the further arguments to be passed to the linear regression, it returns a table containing p-values adjusted by Bonferroni-Holm method and p-values that didn't adjust for famliy-wise error, by using selected cell mean model.
+
+
+```{r}
+wts <- 1/rep(tapply(Mousedata$Cr, Mousedata$Group, var), times = c(5,6,6,6))
+posthoc_test(dat = Mousedata, y = Mousedata$Cr, x = Mousedata$Group, K = K1, method = "holm", weights = wts)
 ```
 
 ## Contributions
@@ -439,3 +558,10 @@ Yuwei Ni: Documenting packages and functions, tutorial
 ## References
 
 Hlavac, Marek (2018). stargazer: Well-Formatted Regression and Summary Statistics Tables. R package version 5.2.1. https://CRAN.R-project.org/package=stargazer
+
+## Session Info
+
+```{r}
+sessionInfo()
+```
+
